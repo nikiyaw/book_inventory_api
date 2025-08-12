@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import Optional
 from app.schemas import Book, BookCreate
+from app.auth import get_current_user, User
+from fastapi import Depends
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
@@ -44,7 +46,7 @@ def get_book(book_id: int):
     raise HTTPException(status_code=404, detail="Book not found")
 
 @router.post("/", response_model=Book, status_code=201)
-def create_book(book: BookCreate):
+def create_book(book: BookCreate, current_user: User = Depends(get_current_user)):
     global next_id
     new_book = {"id": next_id, **book.dict()}
     books_db.append(new_book)
@@ -52,7 +54,7 @@ def create_book(book: BookCreate):
     return new_book
 
 @router.put("/{book_id}", response_model=Book)
-def update_book(book_id: int, updated_book: BookCreate):
+def update_book(book_id: int, updated_book: BookCreate, current_user: User = Depends(get_current_user)):
     for book in books_db:
         if book["id"] == book_id:
             book.update(updated_book.dict())
@@ -60,7 +62,7 @@ def update_book(book_id: int, updated_book: BookCreate):
     raise HTTPException(status_code=404, detail="Book not found")
 
 @router.delete("/{book_id}", status_code=204)
-def delete_book(book_id: int):
+def delete_book(book_id: int, current_user: User = Depends(get_current_user)):
     for i, book in enumerate(books_db):
         if book["id"] == book_id:
             books_db.pop(i)

@@ -11,4 +11,14 @@ class Book(BookBase):
     id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
+
+class UserBase(BaseModel):
+    username: str
+
+class UserCreate(UserBase):
+    username: str
+    password: str
+
+class User(UserBase):
+    id: int
