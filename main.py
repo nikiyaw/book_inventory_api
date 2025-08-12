@@ -1,16 +1,11 @@
 from fastapi import FastAPI
+from app.routers import books
 
 app = FastAPI(title="Book Inventory API")
 
-# Health check route
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Book Inventory API"}
 
-# Example GET endpoint
-@app.get("/books")
-def get_books():
-    return [
-        {"id": 1, "title": "The Pragmatic Programmer", "author": "Andrew Hunt"},
-        {"id": 2, "title": "Clean Code", "author": "Robert C. Martin"}
-    ]
+# Include routers
+app.include_router(books.router)
