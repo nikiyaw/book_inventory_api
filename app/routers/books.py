@@ -1,18 +1,40 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
+from typing import Optional
 from app.schemas import Book, BookCreate
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
-# Temporary in-memory database
 books_db = [
     {"id": 1, "title": "The Pragmatic Programmer", "author": "Andrew Hunt"},
-    {"id": 2, "title": "Clean Code", "author": "Robert C. Martin"}
+    {"id": 2, "title": "Clean Code", "author": "Robert C. Martin"},
+    {"id": 3, "title": "Code Complete", "author": "Steve McConnell"},
+    {"id": 4, "title": "Design Patterns", "author": "Erich Gamma"},
+    {"id": 5, "title": "Refactoring", "author": "Martin Fowler"},
+    # Add more sample books if you want
 ]
-next_id = 3
+
+next_id = 6
 
 @router.get("/", response_model=list[Book])
-def get_books():
-    return books_db
+def get_books(
+    title: Optional[str] = Query(None, description="Filter by book title"),
+    author: Optional[str] = Query(None, description="Filter by author name"),
+    page: int = Query(1, ge=1, description="Page number"),
+    limit: int = Query(10, ge=1, le=50, description="Number of books per page"),
+):
+    # Filter by title and author (case insensitive)
+    filtered = books_db
+    if title:
+        filtered = [book for book in filtered if title.lower() in book["title"].lower()]
+    if author:
+        filtered = [book for book in filtered if author.lower() in book["author"].lower()]
+
+    # Pagination
+    start = (page - 1) * limit
+    end = start + limit
+    paginated = filtered[start:end]
+
+    return paginated
 
 @router.get("/{book_id}", response_model=Book)
 def get_book(book_id: int):
